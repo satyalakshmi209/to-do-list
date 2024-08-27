@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        .container {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2f4f4f;
+        }
+        
+        .input-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #b0c4de;
+            font-size: 16px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4682b4;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #5f9ea0;
+        }
+        
+        .filter-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .filter-btn {
+            margin: 0 5px;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #20b2aa;
+            color: white;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background-color: #3cb371;
+        }
+        
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        li {
+            padding: 10px;
+            background: #e6e6fa;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease;
+        }
+        
+        li.completed {
+            text-decoration: line-through;
+            color: #708090;
+            background-color: #dcdcdc;
+        }
+        
+        li button {
+            margin-left: 10px;
+            background-color: #ff4500;
+            transition: background-color 0.3s ease;
+        }
+        
+        li button:hover {
+            background-color: #ff6347;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List</h1>
+        <div class="input-section">
+            <input type="text" id="taskInput" placeholder="Add a new task...">
+            <button id="addTaskBtn">Add Task</button>
+        </div>
+        <div class="filter-section">
+            <button class="filter-btn" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="completed">Completed</button>
+            <button class="filter-btn" data-filter="pending">Pending</button>
+        </div>
+        <ul id="taskList"></ul>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const taskInput = document.getElementById('taskInput');
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            const taskList = document.getElementById('taskList');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+
+            let tasks = [];
+
+            const addTask = () => {
+                const taskText = taskInput.value.trim();
+                if (taskText !== '') {
+                    tasks.push({ text: taskText, completed: false });
+                    taskInput.value = '';
+                    renderTasks(tasks);
+                }
+            };
+
+            const toggleTaskStatus = (index) => {
+                tasks[index].completed = !tasks[index].completed;
+                renderTasks(tasks);
+            };
+
+            const deleteTask = (index) => {
+                tasks.splice(index, 1);
+                renderTasks(tasks);
+            };
+
+            const editTask = (index) => {
+                const newTaskText = prompt('Edit your task:', tasks[index].text);
+                if (newTaskText !== null && newTaskText.trim() !== '') {
+                    tasks[index].text = newTaskText.trim();
+                    renderTasks(tasks);
+                }
+            };
+
+            const filterTasks = (filter) => {
+                let filteredTasks;
+                switch (filter) {
+                    case 'completed':
+                        filteredTasks = tasks.filter(task => task.completed);
+                        break;
+                    case 'pending':
+                        filteredTasks = tasks.filter(task => !task.completed);
+                        break;
+                    default:
+                        filteredTasks = tasks;
+                }
+                renderTasks(filteredTasks);
+            };
+
+            const renderTasks = (tasksToRender) => {
+                taskList.innerHTML = '';
+                tasksToRender.forEach((task, index) => {
+                    const taskItem = document.createElement('li');
+                    taskItem.className = task.completed ? 'completed' : '';
+                    taskItem.innerHTML = `
+                        <span>${task.text}</span>
+                        <div>
+                            <button class="edit-btn">Edit</button>
+                            <button class="toggle-btn">${task.completed ? 'Undo' : 'Complete'}</button>
+                            <button class="delete-btn">Delete</button>
+                        </div>
+                    `;
+                    taskList.appendChild(taskItem);
+
+                    taskItem.querySelector('.edit-btn').addEventListener('click', () => editTask(index));
+                    taskItem.querySelector('.toggle-btn').addEventListener('click', () => toggleTaskStatus(index));
+                    taskItem.querySelector('.delete-btn').addEventListener('click', () => deleteTask(index));
+                });
+            };
+
+            addTaskBtn.addEventListener('click', addTask);
+            taskInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') addTask();
+            });
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    filterTasks(button.dataset.filter);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
